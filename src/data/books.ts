@@ -53,14 +53,12 @@ export const initialBooks: Book[] = [
   },
 ];
 
-// Helper functions to work with localStorage
 export const getBooks = (): Book[] => {
   const storedBooks = localStorage.getItem("books");
   if (storedBooks) {
     return JSON.parse(storedBooks);
   }
 
-  // Initialize with default books
   localStorage.setItem("books", JSON.stringify(initialBooks));
   return initialBooks;
 };

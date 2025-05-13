@@ -1,27 +1,45 @@
 import styled from "styled-components";
-import "./App.css";
-import { DatePicker } from "antd";
+import { Layout } from "antd";
+import Header from "./Components/Header";
+import { Outlet, Navigate, useLocation } from "react-router";
+import { useAuth } from "./context/AuthContext";
+
+const { Content } = Layout;
+
+const StyledLayout = styled(Layout)`
+  min-height: 100vh;
+`;
+
+const StyledContent = styled(Content)`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  width: 100%;
+`;
 
 function App() {
-  // Create a Title component that'll render an <h1> tag with some styles
-  const Title = styled.h1`
-    font-size: 1.5em;
-    text-align: center;
-    color: #bf4f74;
-  `;
+  const { isLoggedIn } = useAuth();
+  const location = useLocation();
 
-  // Create a Wrapper component that'll render a <section> tag with some styles
-  const Wrapper = styled.section`
-    padding: 4em;
-    background: papayawhip;
-  `;
+  // Check if the route is protected (anything but the login page)
+  const isProtectedRoute = location.pathname !== "/";
 
   return (
     <>
-      <Wrapper>
-        <Title>Hello World!</Title>
-        <DatePicker />
-      </Wrapper>
+      <StyledLayout>
+        <Header />
+        <StyledContent>
+          {isProtectedRoute && !isLoggedIn ? (
+            // Redirect to login if trying to access protected route while not logged in
+            <Navigate to="/" replace />
+          ) : location.pathname === "/" && isLoggedIn ? (
+            // Redirect to home if already logged in and trying to access login page
+            <Navigate to="/home" replace />
+          ) : (
+            <Outlet />
+          )}
+        </StyledContent>
+      </StyledLayout>
     </>
   );
 }
