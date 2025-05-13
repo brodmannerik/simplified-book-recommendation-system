@@ -1,12 +1,12 @@
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { HashRouter, Route, Routes } from "react-router";
-import App from "./App.tsx";
+import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import "./index.css";
-import BookDetails from "./pages/BookDetails.tsx";
-import Home from "./pages/Home.tsx";
-import Login from "./pages/Login.tsx";
+import BookDetails from "./pages/BookDetails";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
 import { store } from "./store/store.ts";
 
 createRoot(document.getElementById("root")!).render(
