@@ -399,12 +399,14 @@ function Home() {
                 )}
 
                 <ScrollableRow
-                  ref={(el) => (rowRefs.current[category] = el)}
+                  ref={(el) => {
+                    rowRefs.current[category] = el;
+                  }}
                   onScroll={() => handleRowScroll(category)}
                 >
                   {books.map((book) => {
                     // Get ratings count for this book
-                    const ratingsCount = getBookRatingsCount(book.id);
+                    const ratingsCount = getBookRatingsCount(String(book.id));
 
                     return (
                       <BookColumn key={book.id}>
