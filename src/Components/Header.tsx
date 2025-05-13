@@ -19,9 +19,18 @@ const StyledHeader = styled(AntHeader)`
 `;
 
 const Logo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 20px;
   font-weight: bold;
   color: rgb(0, 0, 0);
+  cursor: pointer;
+`;
+
+const LogoIcon = styled.img`
+  height: 30px;
+  width: auto;
 `;
 
 const HeaderRight = styled.div`
@@ -53,7 +62,10 @@ function Header() {
 
   return (
     <StyledHeader>
-      <Logo onClick={() => navigate(isLoggedIn ? "/home" : "/")}>Book.com</Logo>
+      <Logo onClick={() => navigate(isLoggedIn ? "/home" : "/")}>
+        <LogoIcon src="/assets/icon.svg" alt="Book.com Logo" />
+        Book.com
+      </Logo>
       <HeaderRight>
         {isLoggedIn && (
           <UserInfo>
