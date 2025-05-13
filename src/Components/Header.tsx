@@ -57,7 +57,7 @@ function Header() {
       <HeaderRight>
         {isLoggedIn && (
           <UserInfo>
-            <span>Hi, {username}</span>
+            <span>Hello, {username}</span>
             <Avatar style={{ backgroundColor: "#1890ff" }}>
               {getUserInitials()}
             </Avatar>

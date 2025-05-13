@@ -4,6 +4,7 @@ export interface Book {
   author: string;
   coverUrl: string;
   description: string;
+  genre?: string;
   reviews: Review[];
 }
 
@@ -23,6 +24,7 @@ export const initialBooks: Book[] = [
     coverUrl: "https://source.unsplash.com/random/400x600?book,1",
     description:
       "A story of wealth, love, and the American Dream in the 1920s.",
+    genre: "Classics",
     reviews: [],
   },
   {
@@ -32,6 +34,7 @@ export const initialBooks: Book[] = [
     coverUrl: "https://source.unsplash.com/random/400x600?book,2",
     description:
       "A novel about racial injustice and moral growth in the American South.",
+    genre: "Fiction",
     reviews: [],
   },
   {
@@ -40,6 +43,7 @@ export const initialBooks: Book[] = [
     author: "George Orwell",
     coverUrl: "https://source.unsplash.com/random/400x600?book,3",
     description: "A dystopian novel about totalitarianism and surveillance.",
+    genre: "Science Fiction",
     reviews: [],
   },
   {
@@ -49,6 +53,25 @@ export const initialBooks: Book[] = [
     coverUrl: "https://source.unsplash.com/random/400x600?book,4",
     description:
       "A romantic novel of manners set in early 19th-century England.",
+    genre: "Romance",
+    reviews: [],
+  },
+  {
+    id: 5,
+    title: "The Catcher in the Rye",
+    author: "J.D. Salinger",
+    coverUrl: "https://source.unsplash.com/random/400x600?book,5",
+    description: "A classic novel about teenage angst and alienation.",
+    genre: "Classics",
+    reviews: [],
+  },
+  {
+    id: 6,
+    title: "The Hobbit",
+    author: "J.R.R. Tolkien",
+    coverUrl: "https://source.unsplash.com/random/400x600?book,6",
+    description: "A fantasy novel about the adventures of a hobbit.",
+    genre: "Fantasy",
     reviews: [],
   },
 ];
