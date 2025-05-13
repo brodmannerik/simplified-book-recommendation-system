@@ -6,6 +6,7 @@ import { type Book } from "../data/books";
 import { fetchAllCategoryBooks, categories } from "../api/bookApi";
 import { useAuth } from "../context/AuthContext";
 import { SearchOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { useAppSelector } from "../store/hooks";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -63,11 +64,18 @@ const GenreSection = styled.div`
 
 const BookCard = styled(Card)`
   margin-bottom: 24px;
-  transition: transform 0.3s;
+  transition: transform 0.3s, box-shadow 0.3s;
   height: 100%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 
   &:hover {
     transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Override the default Ant Design card shadow */
+  &.ant-card-hoverable:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
   }
 `;
 
@@ -161,6 +169,14 @@ function Home() {
   // Handle search
   const handleSearch = (value: string) => {
     setSearchQuery(value);
+  };
+
+  // Get all ratings from Redux
+  const allRatings = useAppSelector((state) => state.ratings.ratings);
+
+  // Function to count ratings for a specific book
+  const getBookRatingsCount = (bookId: string) => {
+    return allRatings.filter((rating) => rating.bookId === bookId).length;
   };
 
   if (loading) {
@@ -259,41 +275,45 @@ function Home() {
 
                 {/* @ts-ignore */}
                 <ScrollableRow ref={(el) => (rowRefs.current[category] = el)}>
-                  {books.map((book) => (
-                    <BookColumn key={book.id}>
-                      <Link to={`/book/${book.id}`}>
-                        <BookCard
-                          hoverable
-                          cover={
-                            <BookCover alt={book.title} src={book.coverUrl} />
-                          }
-                        >
-                          <Card.Meta
-                            title={book.title}
-                            description={
-                              <>
-                                <Text type="secondary">{book.author}</Text>
-                                <div style={{ marginTop: 8 }}>
-                                  {/* @ts-ignore */}
-                                  <Text ellipsis={{ rows: 2 }}>
-                                    {book.description}
-                                  </Text>
-                                </div>
-                                <div style={{ marginTop: 8 }}>
-                                  <Text type="secondary">
-                                    {book.reviews.length}{" "}
-                                    {book.reviews.length === 1
-                                      ? "review"
-                                      : "reviews"}
-                                  </Text>
-                                </div>
-                              </>
+                  {books.map((book) => {
+                    // Get ratings count for this book
+                    const ratingsCount = getBookRatingsCount(book.id);
+
+                    return (
+                      <BookColumn key={book.id}>
+                        <Link to={`/book/${book.id}`}>
+                          <BookCard
+                            hoverable
+                            cover={
+                              <BookCover alt={book.title} src={book.coverUrl} />
                             }
-                          />
-                        </BookCard>
-                      </Link>
-                    </BookColumn>
-                  ))}
+                          >
+                            <Card.Meta
+                              title={book.title}
+                              description={
+                                <>
+                                  <Text type="secondary">{book.author}</Text>
+                                  <div style={{ marginTop: 8 }}>
+                                    <Text ellipsis={{ rows: 2 }}>
+                                      {book.description}
+                                    </Text>
+                                  </div>
+                                  <div style={{ marginTop: 8 }}>
+                                    <Text type="secondary">
+                                      {ratingsCount}{" "}
+                                      {ratingsCount === 1
+                                        ? "review"
+                                        : "reviews"}
+                                    </Text>
+                                  </div>
+                                </>
+                              }
+                            />
+                          </BookCard>
+                        </Link>
+                      </BookColumn>
+                    );
+                  })}
                 </ScrollableRow>
 
                 <ScrollButton

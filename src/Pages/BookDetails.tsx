@@ -14,9 +14,16 @@ import {
   Spin,
 } from "antd";
 import styled from "styled-components";
-import { type Book, type Review } from "../data/books";
-import { fetchBookById, addReview } from "../api/bookApi";
+import { type Book } from "../data/books";
+import { fetchBookById } from "../api/bookApi";
 import { useAuth } from "../context/AuthContext";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  addRating,
+  selectRatingsByBookId,
+  selectAverageRating,
+  type Rating,
+} from "../store/ratingsSlice";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -76,6 +83,15 @@ function BookDetails() {
   const navigate = useNavigate();
   const { isLoggedIn, username } = useAuth();
 
+  // Redux hooks
+  const dispatch = useAppDispatch();
+  const bookRatings = useAppSelector((state) =>
+    id ? selectRatingsByBookId(state, id) : []
+  );
+  const averageRating = useAppSelector((state) =>
+    id ? selectAverageRating(state, id) : 0
+  );
+
   useEffect(() => {
     const loadBook = async () => {
       if (!id) return;
@@ -110,29 +126,24 @@ function BookDetails() {
     if (!id || !username || !book) return;
 
     try {
-      await addReview(id, {
-        username,
-        rating: values.rating,
-        comment: values.comment,
-      });
+      // Add rating to Redux store
+      dispatch(
+        addRating({
+          bookId: id,
+          username,
+          rating: values.rating,
+          comment: values.comment,
+          date: new Date().toISOString(),
+        })
+      );
 
-      // Refresh book data
-      const updatedBook = await fetchBookById(id);
-      if (updatedBook) {
-        setBook(updatedBook);
-        form.resetFields();
-        message.success("Review added successfully!");
-      }
+      // Reset form and show success message
+      form.resetFields();
+      message.success("Review added successfully!");
     } catch (err) {
       console.error("Error adding review:", err);
       message.error("Failed to add review");
     }
-  };
-
-  const getAverageRating = (reviews: Review[]) => {
-    if (reviews.length === 0) return 0;
-    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return sum / reviews.length;
   };
 
   if (loading) {
@@ -181,12 +192,12 @@ function BookDetails() {
             </Text>
 
             <div style={{ margin: "16px 0" }}>
-              <Rate disabled allowHalf value={getAverageRating(book.reviews)} />
+              <Rate disabled allowHalf value={averageRating} />
               <Text style={{ marginLeft: 8 }}>
-                {book.reviews.length > 0
-                  ? `${getAverageRating(book.reviews).toFixed(1)} · ${
-                      book.reviews.length
-                    } review${book.reviews.length > 1 ? "s" : ""}`
+                {bookRatings.length > 0
+                  ? `${averageRating.toFixed(1)} · ${
+                      bookRatings.length
+                    } review${bookRatings.length > 1 ? "s" : ""}`
                   : "No reviews yet"}
               </Text>
             </div>
@@ -207,7 +218,6 @@ function BookDetails() {
         {isLoggedIn && (
           <ReviewForm
             form={form}
-            // @ts-ignore
             onFinish={handleSubmitReview}
             layout="vertical"
           >
@@ -238,12 +248,11 @@ function BookDetails() {
           </ReviewForm>
         )}
 
-        {book.reviews.length > 0 ? (
+        {bookRatings.length > 0 ? (
           <ReviewsList
             itemLayout="horizontal"
-            dataSource={book.reviews}
-            // @ts-ignore
-            renderItem={(review: Review) => (
+            dataSource={bookRatings}
+            renderItem={(review: Rating) => (
               <List.Item>
                 <List.Item.Meta
                   avatar={
