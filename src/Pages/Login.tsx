@@ -35,7 +35,7 @@ function Login() {
   return (
     <>
       <LoginContainer>
-        <StyledCard title="Login to BookReview">
+        <StyledCard title="Login to Book.com">
           <Form
             name="login"
             layout="vertical"

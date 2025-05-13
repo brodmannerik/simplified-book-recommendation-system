@@ -11,7 +11,7 @@ const StyledHeader = styled(AntHeader)`
   align-items: center;
   padding: 0 24px;
   background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   height: 64px;
   position: sticky;
   top: 0;
@@ -21,7 +21,7 @@ const StyledHeader = styled(AntHeader)`
 const Logo = styled.div`
   font-size: 20px;
   font-weight: bold;
-  color: #1890ff;
+  color: rgb(0, 0, 0);
 `;
 
 const HeaderRight = styled.div`
@@ -53,9 +53,7 @@ function Header() {
 
   return (
     <StyledHeader>
-      <Logo onClick={() => navigate(isLoggedIn ? "/home" : "/")}>
-        BookReview App
-      </Logo>
+      <Logo onClick={() => navigate(isLoggedIn ? "/home" : "/")}>Book.com</Logo>
       <HeaderRight>
         {isLoggedIn && (
           <UserInfo>
@@ -64,7 +62,7 @@ function Header() {
               {getUserInitials()}
             </Avatar>
             <Button
-              type="primary"
+              type="dashed"
               onClick={() => {
                 logout();
                 navigate("/");

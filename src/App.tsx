@@ -8,6 +8,7 @@ const { Content } = Layout;
 
 const StyledLayout = styled(Layout)`
   min-height: 100vh;
+  background-color: #ffffff;
 `;
 
 const StyledContent = styled(Content)`
@@ -15,6 +16,7 @@ const StyledContent = styled(Content)`
   margin: 0 auto;
   padding: 24px;
   width: 100%;
+  background-color: #ffffff;
 `;
 
 function App() {
