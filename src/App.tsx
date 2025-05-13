@@ -1,35 +1,49 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import styled from "styled-components";
+import { Layout } from "antd";
+import Header from "./Components/Header";
+import { Outlet, Navigate, useLocation } from "react-router";
+import { useAuth } from "./context/AuthContext";
+
+const { Content } = Layout;
+
+const StyledLayout = styled(Layout)`
+  min-height: 100vh;
+  background-color: #ffffff;
+`;
+
+const StyledContent = styled(Content)`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  width: 100%;
+  background-color: #ffffff;
+`;
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { isLoggedIn } = useAuth();
+  const location = useLocation();
+
+  // Check if the route is protected (anything but the login page)
+  const isProtectedRoute = location.pathname !== "/";
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <StyledLayout>
+        <Header />
+        <StyledContent>
+          {isProtectedRoute && !isLoggedIn ? (
+            // Redirect to login if trying to access protected route while not logged in
+            <Navigate to="/" replace />
+          ) : location.pathname === "/" && isLoggedIn ? (
+            // Redirect to home if already logged in and trying to access login page
+            <Navigate to="/home" replace />
+          ) : (
+            <Outlet />
+          )}
+        </StyledContent>
+      </StyledLayout>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
