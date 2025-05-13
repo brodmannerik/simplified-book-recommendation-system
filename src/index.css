@@ -3,7 +3,6 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Set light theme as default */
   color: #213547;
   background-color: #ffffff;
 
@@ -32,7 +31,6 @@ body {
   padding: 0;
   width: 100%;
   min-height: 100vh;
-  /* Remove flex display that was causing layout issues */
 }
 
 #root {
@@ -45,12 +43,10 @@ h1 {
   line-height: 1.1;
 }
 
-/* Allow Ant Design to control button styles */
 button {
   cursor: pointer;
 }
 
-/* Remove the dark theme, or make it a proper media query if needed */
 @media (prefers-color-scheme: dark) {
   :root {
     color: rgba(255, 255, 255, 0.87);
