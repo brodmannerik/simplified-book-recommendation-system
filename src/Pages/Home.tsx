@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
-import { Row, Col, Card, Typography, Input, Empty, Divider } from "antd";
+import { useEffect, useState, useRef } from "react";
+import { Card, Typography, Input, Empty, Divider, Spin, Button } from "antd";
 import styled from "styled-components";
 import { Link } from "react-router";
-import { type Book, getBooks } from "../data/books";
+import { type Book } from "../data/books";
+import { fetchAllCategoryBooks, categories } from "../api/bookApi";
 import { useAuth } from "../context/AuthContext";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -76,62 +77,138 @@ const BookCover = styled.img`
   object-fit: cover;
 `;
 
+// Add these new styled components for horizontal scrolling
+const ScrollableRow = styled.div`
+  display: flex;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  position: relative;
+  padding: 10px 0;
+`;
+
+const ScrollButton = styled(Button)`
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #d9d9d9;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  &.left {
+    left: 0;
+  }
+
+  &.right {
+    right: 0;
+  }
+`;
+
+const BookColumn = styled.div`
+  flex: 0 0 auto;
+  width: 250px;
+  padding: 0 12px;
+  transition: transform 0.3s;
+`;
+
 function Home() {
-  const [books, setBooks] = useState<Book[]>([]);
+  const [categoryBooks, setCategoryBooks] = useState<Record<string, Book[]>>(
+    {}
+  );
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { username } = useAuth();
 
+  // Create refs for each category row for scrolling
+  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
   useEffect(() => {
-    // Get books from storage
-    const allBooks = getBooks();
+    const loadBooks = async () => {
+      try {
+        setLoading(true);
+        const books = await fetchAllCategoryBooks();
+        setCategoryBooks(books);
+        setError(null);
+      } catch (err) {
+        console.error("Error loading books:", err);
+        setError("Failed to load books. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Add genre if not present in your data
-    const booksWithGenre = allBooks.map((book) => ({
-      ...book,
-      genre: book.genre || getGenreForBook(book),
-    }));
-
-    setBooks(booksWithGenre);
+    loadBooks();
   }, []);
 
-  // Function to assign genres if they're not in your data model
-  const getGenreForBook = (book: Book): string => {
-    const title = book.title.toLowerCase();
-    const author = book.author.toLowerCase();
+  // Handle scroll for a category row
+  const handleScroll = (direction: "left" | "right", category: string) => {
+    const row = rowRefs.current[category];
+    if (!row) return;
 
-    if (title.includes("gatsby")) return "Classics";
-    if (title.includes("mockingbird")) return "Fiction";
-    if (title.includes("1984")) return "Science Fiction";
-    if (title.includes("pride")) return "Romance";
+    const scrollAmount = 800; // Adjust based on how much you want to scroll
+    const newPosition =
+      direction === "left"
+        ? row.scrollLeft - scrollAmount
+        : row.scrollLeft + scrollAmount;
 
-    // Default genres based on book ID for demonstration
-    return ["Classics", "Fiction", "Science Fiction", "Romance"][book.id % 4];
+    row.scrollTo({
+      left: newPosition,
+      behavior: "smooth",
+    });
   };
-
-  // Filter books based on search query
-  const filteredBooks = books.filter((book) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      book.title.toLowerCase().includes(query) ||
-      book.author.toLowerCase().includes(query)
-    );
-  });
-
-  // Group books by genre
-  const booksByGenre = filteredBooks.reduce((acc, book) => {
-    const genre = book.genre || getGenreForBook(book);
-    if (!acc[genre]) {
-      acc[genre] = [];
-    }
-    acc[genre].push(book);
-    return acc;
-  }, {} as Record<string, Book[]>);
 
   // Handle search
   const handleSearch = (value: string) => {
     setSearchQuery(value);
   };
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "50vh",
+        }}
+      >
+        <Spin size="large" tip="Loading books..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px" }}>
+        <Title level={3}>Error</Title>
+        <Text type="danger">{error}</Text>
+      </div>
+    );
+  }
+
+  // Filter books based on search query
+  const filteredCategories = Object.entries(categoryBooks).reduce(
+    (acc, [category, books]) => {
+      if (!searchQuery) {
+        acc[category] = books;
+        return acc;
+      }
+
+      const filtered = books.filter(
+        (book) =>
+          book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          book.author.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+      if (filtered.length > 0) {
+        acc[category] = filtered;
+      }
+
+      return acc;
+    },
+    {} as Record<string, Book[]>
+  );
 
   return (
     <div>
@@ -155,54 +232,80 @@ function Home() {
         />
       </SearchSection>
 
-      {Object.keys(booksByGenre).length === 0 ? (
+      {Object.keys(filteredCategories).length === 0 ? (
         <Empty
           description="No books found matching your search"
           style={{ marginTop: 48 }}
         />
       ) : (
-        Object.entries(booksByGenre).map(([genre, genreBooks]) => (
-          <GenreSection key={genre}>
-            <Divider orientation="left">
-              <Title level={3}>{genre}</Title>
-            </Divider>
+        // Display each category in order
+        categories.map((category) => {
+          const books = filteredCategories[category];
+          if (!books || books.length === 0) return null;
 
-            <Row gutter={[24, 24]}>
-              {genreBooks.map((book) => (
-                <Col xs={24} sm={12} md={8} lg={6} key={book.id}>
-                  <Link to={`/book/${book.id}`}>
-                    <BookCard
-                      hoverable
-                      cover={<BookCover alt={book.title} src={book.coverUrl} />}
-                    >
-                      <Card.Meta
-                        title={book.title}
-                        description={
-                          <>
-                            <Text type="secondary">{book.author}</Text>
-                            <div style={{ marginTop: 8 }}>
-                              <Text ellipsis={{ rows: 2 }}>
-                                {book.description}
-                              </Text>
-                            </div>
-                            <div style={{ marginTop: 8 }}>
-                              <Text type="secondary">
-                                {book.reviews.length}{" "}
-                                {book.reviews.length === 1
-                                  ? "review"
-                                  : "reviews"}
-                              </Text>
-                            </div>
-                          </>
-                        }
-                      />
-                    </BookCard>
-                  </Link>
-                </Col>
-              ))}
-            </Row>
-          </GenreSection>
-        ))
+          return (
+            <GenreSection key={category}>
+              <Divider orientation="left">
+                <Title level={3}>{category}</Title>
+              </Divider>
+
+              <div style={{ position: "relative" }}>
+                <ScrollButton
+                  className="left"
+                  icon={<LeftOutlined />}
+                  shape="circle"
+                  onClick={() => handleScroll("left", category)}
+                />
+
+                {/* @ts-ignore */}
+                <ScrollableRow ref={(el) => (rowRefs.current[category] = el)}>
+                  {books.map((book) => (
+                    <BookColumn key={book.id}>
+                      <Link to={`/book/${book.id}`}>
+                        <BookCard
+                          hoverable
+                          cover={
+                            <BookCover alt={book.title} src={book.coverUrl} />
+                          }
+                        >
+                          <Card.Meta
+                            title={book.title}
+                            description={
+                              <>
+                                <Text type="secondary">{book.author}</Text>
+                                <div style={{ marginTop: 8 }}>
+                                  {/* @ts-ignore */}
+                                  <Text ellipsis={{ rows: 2 }}>
+                                    {book.description}
+                                  </Text>
+                                </div>
+                                <div style={{ marginTop: 8 }}>
+                                  <Text type="secondary">
+                                    {book.reviews.length}{" "}
+                                    {book.reviews.length === 1
+                                      ? "review"
+                                      : "reviews"}
+                                  </Text>
+                                </div>
+                              </>
+                            }
+                          />
+                        </BookCard>
+                      </Link>
+                    </BookColumn>
+                  ))}
+                </ScrollableRow>
+
+                <ScrollButton
+                  className="right"
+                  icon={<RightOutlined />}
+                  shape="circle"
+                  onClick={() => handleScroll("right", category)}
+                />
+              </div>
+            </GenreSection>
+          );
+        })
       )}
     </div>
   );

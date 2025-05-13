@@ -1,3 +1,4 @@
+import { fetchBooks } from "../api/bookApi";
 export interface Book {
   id: number;
   title: string;
@@ -76,26 +77,38 @@ export const initialBooks: Book[] = [
   },
 ];
 
-export const getBooks = (): Book[] => {
+export const getBooks = async (): Promise<Book[]> => {
   const storedBooks = localStorage.getItem("books");
   if (storedBooks) {
     return JSON.parse(storedBooks);
+  }
+
+  try {
+    // Fetch from API if not in local storage
+    const apiBooks = await fetchBooks();
+
+    if (apiBooks.length > 0) {
+      localStorage.setItem("books", JSON.stringify(apiBooks));
+      return apiBooks;
+    }
+  } catch (error) {
+    console.error("Error fetching books:", error);
   }
 
   localStorage.setItem("books", JSON.stringify(initialBooks));
   return initialBooks;
 };
 
-export const getBook = (id: number): Book | undefined => {
-  const books = getBooks();
+export const getBook = async (id: number): Promise<Book | undefined> => {
+  const books = await getBooks();
   return books.find((book) => book.id === id);
 };
 
-export const addReview = (
+export const addReview = async (
   bookId: number,
   review: Omit<Review, "id" | "date">
-): void => {
-  const books = getBooks();
+): Promise<void> => {
+  const books = await getBooks();
   const bookIndex = books.findIndex((book) => book.id === bookId);
 
   if (bookIndex !== -1) {
