@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { HashRouter, Route, Routes } from "react-router";
 import App from "./App.tsx";
 import { AuthProvider } from "./context/AuthContext";
 import "./index.css";
@@ -12,7 +12,7 @@ import { store } from "./store/store.ts";
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
     <AuthProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<App />}>
             <Route index element={<Login />} />
@@ -20,7 +20,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="book/:id" element={<BookDetails />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </AuthProvider>
   </Provider>
 );
