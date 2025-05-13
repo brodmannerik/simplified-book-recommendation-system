@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import "./App.css";
+import { DatePicker } from "antd";
 
 function App() {
   // Create a Title component that'll render an <h1> tag with some styles
@@ -19,6 +20,7 @@ function App() {
     <>
       <Wrapper>
         <Title>Hello World!</Title>
+        <DatePicker />
       </Wrapper>
     </>
   );
