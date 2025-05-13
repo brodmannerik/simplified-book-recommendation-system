@@ -1,6 +1,6 @@
 import { fetchBooks } from "../api/bookApi";
 export interface Book {
-  id: number;
+  id: number | string;
   title: string;
   author: string;
   coverUrl: string;

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { type Book } from "../data/books";
+import { type Book, type Review } from "../data/books";
 
 // Interface for Google Books API response
 interface GoogleBooksResponse {
@@ -26,7 +26,6 @@ const mapGoogleBooksToBooks = (
   category: string
 ): Book[] => {
   if (!response.items) return [];
-  // @ts-ignore
   return response.items.map((item, index) => {
     // Check if there's a valid thumbnail image
     const hasThumbnail = item.volumeInfo.imageLinks?.thumbnail ? true : false;
@@ -101,8 +100,7 @@ export const fetchBookById = async (id: string): Promise<Book | null> => {
     const storedBooksJSON = localStorage.getItem("books");
     if (storedBooksJSON) {
       const allBooks: Book[] = JSON.parse(storedBooksJSON);
-      // @ts-ignore
-      const bookById = allBooks.find((book) => book.id === id);
+      const bookById = allBooks.find((book) => String(book.id) === String(id));
       if (bookById) return bookById;
     }
 
@@ -112,8 +110,8 @@ export const fetchBookById = async (id: string): Promise<Book | null> => {
 
     // Search through all categories to find the book
     for (const books of Object.values(allCategoryBooks)) {
-      // @ts-ignore
-      const book = books.find((book) => book.id === id);
+      const book = books.find((book) => String(book.id) === String(id));
+
       if (book) return book;
     }
 
@@ -147,13 +145,13 @@ export const addReview = async (
     if (!storedBooksJSON) throw new Error("No books found in storage");
 
     const allBooks: Book[] = JSON.parse(storedBooksJSON);
-    // @ts-ignore
-    const bookIndex = allBooks.findIndex((book) => book.id === bookId);
+    const bookIndex = allBooks.findIndex(
+      (book) => String(book.id) === String(bookId)
+    );
 
     if (bookIndex === -1) throw new Error("Book not found");
 
     // Create the new review
-    // @ts-ignore
     const newReview: Review = {
       id: Date.now(),
       username: review.username,
