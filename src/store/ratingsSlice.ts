@@ -1,4 +1,9 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  type PayloadAction,
+  createSelector,
+} from "@reduxjs/toolkit";
+import type { RootState } from "./store";
 
 export interface Rating {
   bookId: string;
@@ -29,21 +34,21 @@ export const ratingsSlice = createSlice({
 // Export actions
 export const { addRating } = ratingsSlice.actions;
 
-// Selectors - now using a more generic approach
-export const selectRatingsByBookId = (
-  state: { ratings: RatingsState },
-  bookId: string
-) => state.ratings.ratings.filter((rating) => rating.bookId === bookId);
+// Memoized selectors
+const selectRatingsState = (state: RootState) => state.ratings.ratings;
 
-export const selectAverageRating = (
-  state: { ratings: RatingsState },
-  bookId: string
-) => {
-  const bookRatings = selectRatingsByBookId(state, bookId);
-  if (bookRatings.length === 0) return 0;
+export const selectRatingsByBookId = createSelector(
+  [selectRatingsState, (_state: RootState, bookId: string) => bookId],
+  (ratings, bookId) => ratings.filter((rating) => rating.bookId === bookId)
+);
 
-  const sum = bookRatings.reduce((total, rating) => total + rating.rating, 0);
-  return sum / bookRatings.length;
-};
+export const selectAverageRating = createSelector(
+  [selectRatingsByBookId],
+  (bookRatings) => {
+    if (bookRatings.length === 0) return 0;
+    const sum = bookRatings.reduce((total, rating) => total + rating.rating, 0);
+    return sum / bookRatings.length;
+  }
+);
 
 export default ratingsSlice.reducer;

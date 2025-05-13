@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Card, Typography, Input, Empty, Divider, Spin, Button } from "antd";
 import styled from "styled-components";
 import { Link } from "react-router";
@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { SearchOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { useAppSelector } from "../store/hooks";
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
 
 const StyledSearch = styled(Search)`
@@ -128,6 +128,17 @@ function Home() {
   const [error, setError] = useState<string | null>(null);
   const { username } = useAuth();
 
+  // Add state to track scroll positions for each category
+  const [scrollPositions, setScrollPositions] = useState<
+    Record<
+      string,
+      {
+        canScrollLeft: boolean;
+        canScrollRight: boolean;
+      }
+    >
+  >({});
+
   // Create refs for each category row for scrolling
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -149,22 +160,123 @@ function Home() {
     loadBooks();
   }, []);
 
-  // Handle scroll for a category row
-  const handleScroll = (direction: "left" | "right", category: string) => {
+  useEffect(() => {
+    // Initialize scroll positions for all categories
+    const updateAllScrollPositions = () => {
+      const newPositions: Record<
+        string,
+        { canScrollLeft: boolean; canScrollRight: boolean }
+      > = {};
+
+      Object.entries(rowRefs.current).forEach(([category, row]) => {
+        if (row) {
+          const { scrollLeft, scrollWidth, clientWidth } = row;
+          newPositions[category] = {
+            canScrollLeft: scrollLeft > 0,
+            canScrollRight: scrollLeft + clientWidth < scrollWidth - 10, // 10px buffer for rounding errors
+          };
+        }
+      });
+
+      setScrollPositions(newPositions);
+    };
+
+    // Initial check after books load
+    if (!loading && Object.keys(categoryBooks).length > 0) {
+      // Give time for the DOM to render
+      setTimeout(updateAllScrollPositions, 100);
+    }
+
+    return () => {
+      // Clean up event listeners if needed
+    };
+  }, [categoryBooks, loading]);
+
+  // Optimize scroll handling with debounce mechanism
+  const scrollTimers = useRef<Record<string, number>>({});
+
+  // Create a memoized scroll handler
+  const handleRowScroll = useCallback((category: string) => {
+    // Clear any pending timer
+    if (scrollTimers.current[category]) {
+      window.cancelAnimationFrame(scrollTimers.current[category]);
+    }
+
+    // Schedule the update with requestAnimationFrame for better performance
+    scrollTimers.current[category] = window.requestAnimationFrame(() => {
+      updateScrollPosition(category);
+    });
+  }, []);
+
+  // Update scroll position tracking for a specific category
+  const updateScrollPosition = useCallback((category: string) => {
     const row = rowRefs.current[category];
     if (!row) return;
 
-    const scrollAmount = 800; // Adjust based on how much you want to scroll
-    const newPosition =
-      direction === "left"
-        ? row.scrollLeft - scrollAmount
-        : row.scrollLeft + scrollAmount;
+    const { scrollLeft, scrollWidth, clientWidth } = row;
 
-    row.scrollTo({
-      left: newPosition,
-      behavior: "smooth",
+    // Use function form of setState for better performance
+    setScrollPositions((prev) => {
+      // Only update if values actually changed
+      const currentPos = prev[category];
+      const newCanScrollLeft = scrollLeft > 5; // small threshold for better UX
+      const newCanScrollRight = scrollLeft + clientWidth < scrollWidth - 5;
+
+      if (
+        !currentPos ||
+        currentPos.canScrollLeft !== newCanScrollLeft ||
+        currentPos.canScrollRight !== newCanScrollRight
+      ) {
+        return {
+          ...prev,
+          [category]: {
+            canScrollLeft: newCanScrollLeft,
+            canScrollRight: newCanScrollRight,
+          },
+        };
+      }
+
+      return prev; // No change needed
     });
-  };
+  }, []);
+
+  // Optimize button click handler
+  const handleScroll = useCallback(
+    (direction: "left" | "right", category: string) => {
+      const row = rowRefs.current[category];
+      if (!row) return;
+
+      // Calculate visible columns to determine scroll distance
+      const columnWidth = 250 + 24; // width + padding
+      const visibleColumns = Math.floor(row.clientWidth / columnWidth);
+      const scrollAmount = columnWidth * Math.max(1, visibleColumns - 1);
+
+      const newPosition =
+        direction === "left"
+          ? row.scrollLeft - scrollAmount
+          : row.scrollLeft + scrollAmount;
+
+      row.scrollTo({
+        left: newPosition,
+        behavior: "smooth",
+      });
+
+      // Update after animation completes using requestAnimationFrame
+      const checkScrollEnd = () => {
+        // Check if the scroll operation is complete
+        if (row.scrollLeft === newPosition) {
+          updateScrollPosition(category);
+        } else {
+          // If not complete, check again on next frame
+          window.requestAnimationFrame(checkScrollEnd);
+        }
+      };
+
+      // Start monitoring the scroll
+      window.requestAnimationFrame(checkScrollEnd);
+    },
+    []
+  );
 
   // Handle search
   const handleSearch = (value: string) => {
@@ -189,7 +301,12 @@ function Home() {
           height: "50vh",
         }}
       >
-        <Spin size="large" tip="Loading books..." />
+        <Spin size="large">
+          {/* Put the loading text inside the Spin component to use nest pattern */}
+          <div style={{ padding: "50px", textAlign: "center", opacity: 0.5 }}>
+            Loading books...
+          </div>
+        </Spin>
       </div>
     );
   }
@@ -259,6 +376,12 @@ function Home() {
           const books = filteredCategories[category];
           if (!books || books.length === 0) return null;
 
+          // Get scroll state for this category
+          const scrollState = scrollPositions[category] || {
+            canScrollLeft: false,
+            canScrollRight: true,
+          };
+
           return (
             <GenreSection key={category}>
               <Divider orientation="left">
@@ -266,15 +389,19 @@ function Home() {
               </Divider>
 
               <div style={{ position: "relative" }}>
-                <ScrollButton
-                  className="left"
-                  icon={<LeftOutlined />}
-                  shape="circle"
-                  onClick={() => handleScroll("left", category)}
-                />
+                {scrollState.canScrollLeft && (
+                  <ScrollButton
+                    className="left"
+                    icon={<LeftOutlined />}
+                    shape="circle"
+                    onClick={() => handleScroll("left", category)}
+                  />
+                )}
 
-                {/* @ts-ignore */}
-                <ScrollableRow ref={(el) => (rowRefs.current[category] = el)}>
+                <ScrollableRow
+                  ref={(el) => (rowRefs.current[category] = el)}
+                  onScroll={() => handleRowScroll(category)}
+                >
                   {books.map((book) => {
                     // Get ratings count for this book
                     const ratingsCount = getBookRatingsCount(book.id);
@@ -294,9 +421,12 @@ function Home() {
                                 <>
                                   <Text type="secondary">{book.author}</Text>
                                   <div style={{ marginTop: 8 }}>
-                                    <Text ellipsis={{ rows: 2 }}>
+                                    <Paragraph
+                                      ellipsis={{ rows: 2 }}
+                                      style={{ marginBottom: 0 }}
+                                    >
                                       {book.description}
-                                    </Text>
+                                    </Paragraph>
                                   </div>
                                   <div style={{ marginTop: 8 }}>
                                     <Text type="secondary">
@@ -316,12 +446,14 @@ function Home() {
                   })}
                 </ScrollableRow>
 
-                <ScrollButton
-                  className="right"
-                  icon={<RightOutlined />}
-                  shape="circle"
-                  onClick={() => handleScroll("right", category)}
-                />
+                {scrollState.canScrollRight && (
+                  <ScrollButton
+                    className="right"
+                    icon={<RightOutlined />}
+                    shape="circle"
+                    onClick={() => handleScroll("right", category)}
+                  />
+                )}
               </div>
             </GenreSection>
           );

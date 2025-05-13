@@ -100,8 +100,6 @@ function BookDetails() {
         setLoading(true);
         const bookData = await fetchBookById(id);
 
-        console.log("Fetched book data:", bookData);
-
         if (bookData) {
           setBook(bookData);
           setError(null);
@@ -151,14 +149,21 @@ function BookDetails() {
       <div
         style={{ display: "flex", justifyContent: "center", padding: "50px" }}
       >
-        <Spin size="large" tip="Loading book details..." />
+        <Spin size="large">
+          {/* Use the nest pattern instead of the tip prop */}
+          <div style={{ padding: "50px", textAlign: "center", opacity: 0 }}>
+            Loading book details...
+          </div>
+        </Spin>
       </div>
     );
   }
 
+  // For the error state Empty component
   if (error || !book) {
     return (
       <Empty
+        image=""
         description={error || "Book not found"}
         style={{ margin: "50px 0" }}
       >
@@ -283,7 +288,17 @@ function BookDetails() {
             )}
           />
         ) : (
-          <Empty description="No reviews yet. Be the first to review this book!" />
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <div
+              style={{
+                marginBottom: "16px",
+                fontSize: "16px",
+                color: "rgba(0, 0, 0, 0.45)",
+              }}
+            >
+              No reviews yet. Be the first to review this book!
+            </div>
+          </div>
         )}
       </DetailContainer>
     </BookContainer>
