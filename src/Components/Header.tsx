@@ -43,6 +43,14 @@ const UserInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+
+  /* Hide on mobile */
+  @media (max-width: 768px) {
+    .user-greeting,
+    .user-avatar {
+      display: none;
+    }
+  }
 `;
 
 function Header() {
@@ -69,8 +77,11 @@ function Header() {
       <HeaderRight>
         {isLoggedIn && (
           <UserInfo>
-            <span>Hello, {username}</span>
-            <Avatar style={{ backgroundColor: "#1890ff" }}>
+            <span className="user-greeting">Hello, {username}</span>
+            <Avatar
+              className="user-avatar"
+              style={{ backgroundColor: "#1890ff" }}
+            >
               {getUserInitials()}
             </Avatar>
             <Button
