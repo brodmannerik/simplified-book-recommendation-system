@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const login = (username: string, password: string, rememberMe = false) => {
+  const login = (username: string, _password: string, rememberMe = false) => {
     // Choose storage based on rememberMe option
     const storage = rememberMe ? localStorage : sessionStorage;
 
