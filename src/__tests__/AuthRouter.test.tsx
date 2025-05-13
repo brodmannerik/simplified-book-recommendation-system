@@ -2,9 +2,9 @@ import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router";
 import { AuthProvider } from "../context/AuthContext";
-import App from "../App";
-import Home from "../pages/Home";
-import Login from "../pages/Login";
+import App from "../App.tsx";
+import Home from "../pages/Home.tsx";
+import Login from "../pages/Login.tsx";
 
 // Mock the book data service to prevent issues with localStorage
 jest.mock("../data/books", () => ({

@@ -2,8 +2,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import * as reactRouter from "react-router";
 import { AuthProvider, useAuth } from "../context/AuthContext";
-import App from "../App";
-import Login from "../pages/Login";
+import App from "../App.tsx";
+import Login from "../pages/Login.tsx";
 
 // Mock router hooks
 jest.mock("react-router", () => ({
