@@ -4,6 +4,12 @@
 
 Book.com is a modern web application that allows users to browse, search, and review books across multiple genres. It features a Netflix-style UI with horizontally scrollable rows categorized by genre and dynamic search functionality. The application integrates with the Google Books API to provide a rich database of books while maintaining a clean, user-friendly interface.
 
+## Architecture
+
+![Book.com Architecture](/images/diagram.jpg)
+
+The diagram above illustrates the component structure of Book.com, showing how the different parts of the application interact with each other.
+
 ## Features
 
 - User Authentication
