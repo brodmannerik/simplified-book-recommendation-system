@@ -18,7 +18,7 @@ Book.com is a modern web application that allows users to browse, search, and re
 
 ## Architecture
 
-![Book.com Architecture](/images/diagram.jpg)
+![Book.com Architecture](/images/Diagram.jpeg)
 
 The diagram above illustrates the component structure of Book.com, showing how the different parts of the application interact with each other.
 
