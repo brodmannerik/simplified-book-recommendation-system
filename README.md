@@ -4,6 +4,18 @@
 
 Book.com is a modern web application that allows users to browse, search, and review books across multiple genres. It features a Netflix-style UI with horizontally scrollable rows categorized by genre and dynamic search functionality. The application integrates with the Google Books API to provide a rich database of books while maintaining a clean, user-friendly interface.
 
+## Tech Stack
+
+- React 19 with TypeScript
+- React Router for navigation
+- Ant Design component library
+- Styled Components for custom styling
+- Axios for API requests
+- Jest and React Testing - Library for testing
+- Redux Toolkit for state management (specifically for the ratings system)
+- TypeScript with strict mode enabled for type safety
+- Vite for fast development and optimized production builds
+
 ## Architecture
 
 ![Book.com Architecture](/images/diagram.jpg)
@@ -32,14 +44,24 @@ The diagram above illustrates the component structure of Book.com, showing how t
   - Adaptive layout for different screen sizes
   - Optimized header for mobile viewing
 
-## Tech Stack
+## Project Structure
 
-- React 19 with TypeScript
-- React Router for navigation
-- Ant Design component library
-- Styled Components for custom styling
-- Axios for API requests
-- Jest and React Testing - Library for testing
+The application follows a modular architecture with clear separation of concerns:
+
+- `src/components/` - Reusable UI components
+- `src/pages/` - Page components (Home, Login, BookDetails)
+- `src/api/` - API integration with Google Books
+- `src/context/` - React context for authentication
+- `src/store/` - Redux store configuration and slices
+- `src/data/` - Data models and type definitions
+- `src/styles/` - Global styles and theme configuration
+
+## State Management
+
+- Authentication state managed with React Context API
+- Book ratings tracked with Redux Toolkit
+- Transient state (not persisted across reloads) for ratings as per requirements
+- Optimized selective re-rendering with Redux selectors
 
 ## Setup and Installation
 
@@ -99,21 +121,28 @@ npm test
 ## Additional Features and Improvements
 
 1. Authentication Enhancements
+
    - Session persistence with "Remember Me" option
    - User initials displayed in avatar
    - Automatic redirection based on authentication state
    - Comprehensive authentication tests
+   - Router guard implementation preventing unauthorized access to protected routes
+
 2. Google Books API Integration
+
    - Dynamic fetching of books by genre category
    - Parallel API requests for multiple categories
    - Error handling and loading states
    - Local storage caching of book data
+
 3. UI/UX Improvements
+
    - Custom styling for Ant Design components
    - Consistent color scheme with grey accent
    - Animated hover effects on book cards
    - Custom Google Font integration (Poppins)
    - Responsive layout adjustments for mobile
+
 4. Performance Optimizations
    - Efficient state management
    - Horizontal virtualization for book rows
