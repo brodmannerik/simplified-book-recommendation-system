@@ -18,9 +18,6 @@ interface GoogleBooksResponse {
   }[];
 }
 
-// Function to map Google Books response to our Book interface
-// Update your mapGoogleBooksToBooks function like this:
-
 const mapGoogleBooksToBooks = (
   response: GoogleBooksResponse,
   category: string
@@ -37,9 +34,9 @@ const mapGoogleBooksToBooks = (
       // Use a consistent fallback image if no thumbnail is available
       coverUrl: hasThumbnail
         ? item.volumeInfo.imageLinks!.thumbnail!.replace("http:", "https:")
-        : "/assets/book-cover-placeholder.jpg", // Path to your fallback image
+        : "/assets/book-cover-placeholder.jpg",
       description: item.volumeInfo.description || "No description available.",
-      genre: category, // Use our category as the genre
+      genre: category,
       reviews: [], // No reviews initially
     };
   });
@@ -93,7 +90,6 @@ export const fetchBooks = async (): Promise<Book[]> => {
   return Object.values(allBooks).flat();
 };
 
-// Add this new function to fetch a book by its ID
 export const fetchBookById = async (id: string): Promise<Book | null> => {
   try {
     // First check if the book is in localStorage
@@ -105,7 +101,6 @@ export const fetchBookById = async (id: string): Promise<Book | null> => {
     }
 
     // If not found in localStorage, fetch from the API
-    // We need to determine which category to check based on the ID format
     const allCategoryBooks = await fetchAllCategoryBooks();
 
     // Search through all categories to find the book

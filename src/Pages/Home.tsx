@@ -302,7 +302,6 @@ function Home() {
         }}
       >
         <Spin size="large">
-          {/* Put the loading text inside the Spin component to use nest pattern */}
           <div style={{ padding: "50px", textAlign: "center", opacity: 0.5 }}>
             Loading books...
           </div>
